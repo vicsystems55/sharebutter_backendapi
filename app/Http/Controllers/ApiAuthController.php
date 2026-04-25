@@ -26,7 +26,7 @@ class ApiAuthController extends Controller
         ]);
 
         // Dispatch welcome mail job
-        \App\Jobs\SendWelcomeMail::dispatch($user);
+        // \App\Jobs\SendWelcomeMail::dispatch($user);
 
 
         // i need a token here
