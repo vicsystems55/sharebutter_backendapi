@@ -59,6 +59,7 @@
             line-height: 1.05;
             font-weight: 900;
             margin: 30px 0 16px;
+            color: white;
         }
 
         .orange {
@@ -191,6 +192,7 @@
 
             .hero-title {
                 font-size: 38px !important;
+                color: white;
             }
 
             .hero-text {
