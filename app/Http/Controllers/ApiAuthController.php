@@ -15,9 +15,11 @@ class ApiAuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:6|confirmed',
+            'intent' => 'nullable|in:attendee,organizer,vendor',
         ]);
 
+        $intent = $request->intent ?? 'attendee';
 
         $user = User::create([
             'name' => $request->name,
@@ -25,16 +27,32 @@ class ApiAuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Dispatch welcome mail job
-        // \App\Jobs\SendWelcomeMail::dispatch($user);
+        $user->assignRole('attendee');
 
+        // Later customize welcome email by intent
+        \App\Jobs\SendWelcomeMail::dispatch($user, $intent);
 
-        // i need a token here
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        $nextStep = match ($intent) {
+            'organizer' => '/organizer/onboarding',
+            'vendor' => '/vendor/onboarding',
+            default => '/dashboard',
+        };
 
-
-        return response()->json(['message' => 'User registered successfully', 'user' => $user], 201);
+        return response()->json([
+            'message' => 'User registered successfully',
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'next_step' => $nextStep,
+            'intent' => $intent,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->getRoleNames(),
+            ],
+        ], 201);
     }
 
     // Login user
