@@ -22,8 +22,8 @@ class ApiAuthController extends Controller
         $intent = $request->intent ?? 'attendee';
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name' => ucwords(strtolower($request->name)),
+            'email' => strtolower($request->email),
             'password' => Hash::make($request->password),
         ]);
 
@@ -63,13 +63,42 @@ class ApiAuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', strtolower($request->email))->first();
+
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json([
+                'message' => 'Invalid credentials'
+            ], 401);
+        }
+
+        if ($user->status !== 'active') {
+            return response()->json([
+                'message' => 'Your account is not active. Please contact support.'
+            ], 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
-        return response()->json(['message' => 'Login successful', 'token' => $token]);
+
+        $user->update([
+            'last_login_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'next_step' => '/dashboard',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?? null,
+                'avatar' => $user->avatar ?? null,
+                'status' => $user->status ?? 'active',
+                'roles' => $user->getRoleNames(),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
+            ],
+        ]);
     }
 
     // Forgot password (send OTP)

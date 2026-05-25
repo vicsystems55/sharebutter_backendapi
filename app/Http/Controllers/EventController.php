@@ -3,63 +3,169 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventTicketType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class EventController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $events = Event::with(['category', 'organizer:id,name,email'])
+            ->where('status', 'published')
+            ->latest()
+            ->paginate(12);
+
+        return response()->json([
+            'message' => 'Events fetched successfully',
+            'data' => $events,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'category_id' => 'nullable|exists:categories,id',
+            'title' => 'required|string|max:255',
+            'short_description' => 'nullable|string|max:500',
+            'description' => 'nullable|string',
+
+            'banner' => 'nullable|image|max:4096',
+            'thumbnail' => 'nullable|image|max:2048',
+
+            'event_type' => 'required|in:free,paid',
+            'event_format' => 'required|in:physical,online,hybrid',
+
+            'venue_name' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
+
+            'online_platform' => 'nullable|string|max:100',
+            'online_link' => 'nullable|url|max:255',
+            'online_access_code' => 'nullable|string|max:100',
+
+            'starts_at' => 'required|date',
+            'ends_at' => 'nullable|date|after_or_equal:starts_at',
+            'timezone' => 'nullable|string|max:100',
+
+            'visibility' => 'required|in:public,private,invite_only',
+            'publish_mode' => 'required|in:waitlist,instant',
+
+            'allow_reviews' => 'nullable|boolean',
+            'allow_refunds' => 'nullable|boolean',
+
+            'tickets' => 'required|array|min:1',
+            'tickets.*.name' => 'required|string|max:100',
+            'tickets.*.description' => 'nullable|string',
+            'tickets.*.price_orbs' => 'required|integer|min:0',
+            'tickets.*.quantity' => 'required|integer|min:1',
+            'tickets.*.min_per_order' => 'nullable|integer|min:1',
+            'tickets.*.max_per_order' => 'nullable|integer|min:1',
+        ]);
+
+        $user = $request->user();
+
+        $event = DB::transaction(function () use ($request, $validated, $user) {
+            $bannerPath = null;
+            $thumbnailPath = null;
+
+            if ($request->hasFile('banner')) {
+                $bannerPath = $request->file('banner')->store('events/banners', 'public');
+            }
+
+            if ($request->hasFile('thumbnail')) {
+                $thumbnailPath = $request->file('thumbnail')->store('events/thumbnails', 'public');
+            }
+
+            $event = Event::create([
+                'organizer_id' => $user->id,
+                'category_id' => $validated['category_id'] ?? null,
+
+                'title' => $validated['title'],
+                'slug' => $this->generateUniqueSlug($validated['title']),
+                'short_description' => $validated['short_description'] ?? null,
+                'description' => $validated['description'] ?? null,
+
+                'banner' => $bannerPath,
+                'thumbnail' => $thumbnailPath,
+
+                'event_type' => $validated['event_type'],
+                'event_format' => $validated['event_format'],
+
+                'venue_name' => $validated['venue_name'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'city' => $validated['city'] ?? null,
+                'state' => $validated['state'] ?? null,
+                'country' => $validated['country'] ?? 'Nigeria',
+
+                'online_platform' => $validated['online_platform'] ?? null,
+                'online_link' => $validated['online_link'] ?? null,
+                'online_access_code' => $validated['online_access_code'] ?? null,
+
+                'starts_at' => $validated['starts_at'],
+                'ends_at' => $validated['ends_at'] ?? null,
+                'timezone' => $validated['timezone'] ?? 'Africa/Lagos',
+
+                'visibility' => $validated['visibility'],
+                'publish_mode' => $validated['publish_mode'],
+
+                'waitlist_threshold' => 10,
+                'waitlist_expires_at' => now()->addDays(14),
+                'instant_publish_cost_orbs' => $validated['publish_mode'] === 'instant' ? 200 : 0,
+
+                'status' => $validated['publish_mode'] === 'waitlist'
+                    ? 'waiting_list'
+                    : 'pending_approval',
+
+                'allow_reviews' => $validated['allow_reviews'] ?? true,
+                'allow_refunds' => $validated['allow_refunds'] ?? false,
+            ]);
+
+            foreach ($validated['tickets'] as $index => $ticket) {
+                EventTicketType::create([
+                    'event_id' => $event->id,
+                    'name' => $ticket['name'],
+                    'description' => $ticket['description'] ?? null,
+                    'price_orbs' => $validated['event_type'] === 'free' ? 0 : $ticket['price_orbs'],
+                    'quantity' => $ticket['quantity'],
+                    'min_per_order' => $ticket['min_per_order'] ?? 1,
+                    'max_per_order' => $ticket['max_per_order'] ?? 10,
+                    'sort_order' => $index + 1,
+                    'is_active' => true,
+                ]);
+            }
+
+            return $event->load(['category', 'ticketTypes']);
+        });
+
+        return response()->json([
+            'message' => 'Event created successfully',
+            'data' => $event,
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Event $event)
     {
-        //
+        return response()->json([
+            'message' => 'Event fetched successfully',
+            'data' => $event->load(['category', 'organizer:id,name,email', 'ticketTypes']),
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Event $event)
+    private function generateUniqueSlug(string $title): string
     {
-        //
-    }
+        $baseSlug = Str::slug($title);
+        $slug = $baseSlug;
+        $counter = 1;
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Event $event)
-    {
-        //
-    }
+        while (Event::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Event $event)
-    {
-        //
+        return $slug;
     }
 }

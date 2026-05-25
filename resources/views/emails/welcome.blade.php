@@ -118,6 +118,19 @@
             width: 100%;
         }
 
+        .success-heading {
+            margin: 0 0 8px;
+            font-size: 24px;
+            color: #ffffff;
+        }
+
+        .success-text {
+            margin: 0;
+            color: #d4d4d4;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
         .feature-card {
             background: #161616;
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -182,6 +195,44 @@
 
         @media screen and (max-width:640px) {
 
+            .success-icon-cell,
+            .success-text-cell {
+                display: block !important;
+                width: 100% !important;
+                text-align: center !important;
+            }
+
+            .success-icon {
+                margin: 0 auto 16px !important;
+            }
+
+            .success-heading {
+                text-align: center !important;
+                font-size: 22px !important;
+            }
+
+            .success-text {
+                text-align: center !important;
+                font-size: 14px !important;
+                line-height: 1.7 !important;
+            }
+
+            .feature-card {
+                text-align: center !important;
+                max-width: 280px !important;
+                margin: 0 auto 14px !important;
+                padding: 20px !important;
+            }
+
+            .feature-title {
+                margin: 10px 0 6px !important;
+            }
+
+            .feature-text {
+                max-width: 180px !important;
+                margin: 0 auto !important;
+            }
+
             .hero {
                 padding: 42px 24px;
             }
@@ -203,10 +254,6 @@
                 display: block !important;
                 width: 100% !important;
                 padding-bottom: 16px !important;
-            }
-
-            .feature-card {
-                margin-bottom: 14px;
             }
 
             .footer {
@@ -258,31 +305,67 @@
                     <div class="success-card">
                         <div class="success-inner">
 
-                            <table width="100%">
+                            <table width="100%" class="success-table">
                                 <tr>
-
-                                    <td width="80" valign="top">
+                                    <td class="success-icon-cell" width="80" valign="top" align="center">
                                         <div class="success-icon">
                                             ✓
                                         </div>
                                     </td>
 
-                                    <td valign="top">
-                                        <h3 style="margin:0 0 10px; font-size:24px;">
+                                    <td class="success-text-cell" valign="top">
+                                        <h3 class="success-heading">
                                             You're all set!
                                         </h3>
 
-                                        <p style="margin:0;">
-                                            Start discovering events, booking tickets,
-                                            and creating memorable experiences today.
+                                        <p class="success-text">
+                                            Start exploring events and booking memorable experiences today.
                                         </p>
                                     </td>
-
                                 </tr>
                             </table>
 
                         </div>
                     </div>
+
+                    <!-- FEATURES -->
+                    <h3 class="section-title">
+                        What You Can Do Next
+                    </h3>
+
+                    <table width="100%" class="feature-grid">
+                        <tr>
+                            <td class="stack-column" width="33.3%" style="padding:8px;">
+                                <div class="feature-card">
+                                    <div class="feature-icon">🎟️</div>
+                                    <h4 class="feature-title">Discover</h4>
+                                    <p class="feature-text">
+                                        Find events near you.
+                                    </p>
+                                </div>
+                            </td>
+
+                            <td class="stack-column" width="33.3%" style="padding:8px;">
+                                <div class="feature-card">
+                                    <div class="feature-icon">📅</div>
+                                    <h4 class="feature-title">Book</h4>
+                                    <p class="feature-text">
+                                        Reserve your spot.
+                                    </p>
+                                </div>
+                            </td>
+
+                            <td class="stack-column" width="33.3%" style="padding:8px;">
+                                <div class="feature-card">
+                                    <div class="feature-icon">🚀</div>
+                                    <h4 class="feature-title">Organize</h4>
+                                    <p class="feature-text">
+                                        Create your event.
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
 
                     <!-- FEATURES -->
                     <h3 class="section-title">

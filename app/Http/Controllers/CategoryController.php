@@ -10,10 +10,26 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
-    }
+public function index()
+{
+    $categories = Category::query()
+        ->where('is_active', true)
+        ->orderBy('sort_order')
+        ->orderBy('name')
+        ->get([
+            'id',
+            'name',
+            'slug',
+            'icon',
+            'color',
+            'description',
+        ]);
+
+    return response()->json([
+        'message' => 'Categories fetched successfully',
+        'data' => $categories,
+    ]);
+}
 
     /**
      * Show the form for creating a new resource.
