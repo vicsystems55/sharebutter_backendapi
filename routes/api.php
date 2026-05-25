@@ -31,3 +31,18 @@ Route::get('/events/{event:slug}', [EventController::class, 'show']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/events', [EventController::class, 'store']);
 });
+
+Route::get('/my-events', [EventController::class, 'myEvents'])->middleware('auth:sanctum');
+
+
+Route::middleware(['auth:sanctum'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/events', [EventController::class, 'adminIndex']);
+        Route::get('/events/{event}', [EventController::class, 'adminShow']);
+
+        Route::post('/events/{event}/certify', [EventController::class, 'certify']);
+        Route::post('/events/{event}/publish', [EventController::class, 'publish']);
+        Route::post('/events/{event}/reject', [EventController::class, 'reject']);
+        Route::post('/events/{event}/suspend', [EventController::class, 'suspend']);
+    });

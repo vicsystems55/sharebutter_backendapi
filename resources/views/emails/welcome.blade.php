@@ -328,44 +328,7 @@
                         </div>
                     </div>
 
-                    <!-- FEATURES -->
-                    <h3 class="section-title">
-                        What You Can Do Next
-                    </h3>
 
-                    <table width="100%" class="feature-grid">
-                        <tr>
-                            <td class="stack-column" width="33.3%" style="padding:8px;">
-                                <div class="feature-card">
-                                    <div class="feature-icon">🎟️</div>
-                                    <h4 class="feature-title">Discover</h4>
-                                    <p class="feature-text">
-                                        Find events near you.
-                                    </p>
-                                </div>
-                            </td>
-
-                            <td class="stack-column" width="33.3%" style="padding:8px;">
-                                <div class="feature-card">
-                                    <div class="feature-icon">📅</div>
-                                    <h4 class="feature-title">Book</h4>
-                                    <p class="feature-text">
-                                        Reserve your spot.
-                                    </p>
-                                </div>
-                            </td>
-
-                            <td class="stack-column" width="33.3%" style="padding:8px;">
-                                <div class="feature-card">
-                                    <div class="feature-icon">🚀</div>
-                                    <h4 class="feature-title">Organize</h4>
-                                    <p class="feature-text">
-                                        Create your event.
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
 
                     <!-- FEATURES -->
                     <h3 class="section-title">
@@ -413,7 +376,7 @@
 
                     <!-- CTA -->
                     <div class="button-wrap">
-                        <a href="{{ url('/') }}" class="button">
+                        <a href="https://eventoga.netlify.app/dashboard" class="button">
                             Explore EventOga
                         </a>
                     </div>

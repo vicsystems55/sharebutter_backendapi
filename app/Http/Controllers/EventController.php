@@ -10,16 +10,125 @@ use Illuminate\Support\Str;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $events = Event::with(['category', 'organizer:id,name,email'])
+        $events = Event::with(['category', 'organizer:id,name,email', 'ticketTypes'])
             ->where('status', 'published')
-            ->latest()
-            ->paginate(12);
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('venue_name', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%")
+                        ->orWhere('state', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->category, function ($query, $category) {
+                $query->whereHas('category', function ($q) use ($category) {
+                    $q->where('slug', $category)
+                        ->orWhere('name', $category);
+                });
+            })
+            ->when($request->event_type, fn($query, $type) => $query->where('event_type', $type))
+            ->when($request->event_format, fn($query, $format) => $query->where('event_format', $format))
+            ->when($request->date_filter === 'today', fn($query) => $query->whereDate('starts_at', today()))
+            ->when($request->date_filter === 'week', fn($query) => $query->whereBetween('starts_at', [now(), now()->addWeek()]))
+            ->when($request->date_filter === 'month', fn($query) => $query->whereBetween('starts_at', [now(), now()->addMonth()]))
+            ->latest('starts_at')
+            ->paginate($request->per_page ?? 9);
 
         return response()->json([
             'message' => 'Events fetched successfully',
             'data' => $events,
+        ]);
+    }
+
+    public function myEvents(Request $request)
+    {
+        $events = Event::with(['category', 'ticketTypes'])
+            ->where('organizer_id', $request->user()->id)
+            ->latest()
+            ->paginate(12);
+
+        return response()->json([
+            'message' => 'My events fetched successfully',
+            'data' => $events,
+        ]);
+    }
+
+
+    public function adminIndex(Request $request)
+    {
+        $events = Event::with(['category', 'organizer:id,name,email'])
+            ->when($request->search, function ($query, $search) {
+                $query->where('title', 'like', "%{$search}%");
+            })
+            ->when($request->status, fn($query, $status) => $query->where('status', $status))
+            ->when($request->event_type, fn($query, $type) => $query->where('event_type', $type))
+            ->when($request->event_format, fn($query, $format) => $query->where('event_format', $format))
+            ->latest()
+            ->paginate(12);
+
+        return response()->json([
+            'message' => 'Admin events fetched successfully',
+            'data' => $events,
+        ]);
+    }
+
+    public function adminShow(Event $event)
+    {
+        return response()->json([
+            'message' => 'Event fetched successfully',
+            'data' => $event->load(['category', 'organizer:id,name,email', 'ticketTypes']),
+        ]);
+    }
+
+    public function certify(Event $event)
+    {
+        $event->update([
+            'is_verified' => true,
+        ]);
+
+        return response()->json([
+            'message' => 'Event certified successfully',
+            'data' => $event,
+        ]);
+    }
+
+    public function publish(Event $event)
+    {
+        $event->update([
+            'status' => 'published',
+        ]);
+
+        return response()->json([
+            'message' => 'Event published successfully',
+            'data' => $event,
+        ]);
+    }
+
+    public function reject(Request $request, Event $event)
+    {
+        $event->update([
+            'status' => 'rejected',
+            'admin_note' => $request->admin_note,
+        ]);
+
+        return response()->json([
+            'message' => 'Event rejected successfully',
+            'data' => $event,
+        ]);
+    }
+
+    public function suspend(Request $request, Event $event)
+    {
+        $event->update([
+            'status' => 'suspended',
+            'admin_note' => $request->admin_note,
+        ]);
+
+        return response()->json([
+            'message' => 'Event suspended successfully',
+            'data' => $event,
         ]);
     }
 
