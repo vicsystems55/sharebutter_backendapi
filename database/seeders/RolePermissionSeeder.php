@@ -96,7 +96,7 @@ class RolePermissionSeeder extends Seeder
         */
 
         $superAdmin = Role::firstOrCreate([
-            'name' => 'super-admin',
+            'name' => 'superadmin',
             'guard_name' => 'web',
         ]);
 

@@ -28,7 +28,7 @@ public function register(Request $request)
     ]);
 
     // Everyone starts as attendee
-    $user->assignRole('attendee');
+    $user->assignRole($intent);
 
     // // Optional: prepare empty organizer profile if intent is organizer
     // if ($intent === 'organizer') {

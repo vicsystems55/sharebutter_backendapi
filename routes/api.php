@@ -6,6 +6,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\AttendeeProfileController;
 use App\Http\Controllers\OrganizerProfileController;
+use App\Http\Controllers\AdminDashboardController;
+
 // Example API route
 Route::get('/hello', function () {
     return response()->json(['message' => 'Hello from API!']);
@@ -69,3 +71,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/organizer-profile', [OrganizerProfileController::class, 'show']);
     Route::post('/organizer-profile', [OrganizerProfileController::class, 'store']);
 });
+
+
+Route::middleware(['auth:sanctum', 'role:admin|superadmin'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/dashboard/stats', [AdminDashboardController::class, 'stats']);
+    });
