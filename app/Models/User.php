@@ -47,4 +47,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function attendeeProfile()
+    {
+        return $this->hasOne(\App\Models\AttendeeProfile::class);
+    }
+
+    public function organizerProfile()
+{
+    return $this->hasOne(OrganizerProfile::class);
+}
 }

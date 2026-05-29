@@ -4,7 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EventController;
-
+use App\Http\Controllers\AttendeeProfileController;
+use App\Http\Controllers\OrganizerProfileController;
 // Example API route
 Route::get('/hello', function () {
     return response()->json(['message' => 'Hello from API!']);
@@ -45,4 +46,26 @@ Route::middleware(['auth:sanctum'])
         Route::post('/events/{event}/publish', [EventController::class, 'publish']);
         Route::post('/events/{event}/reject', [EventController::class, 'reject']);
         Route::post('/events/{event}/suspend', [EventController::class, 'suspend']);
+         Route::get('/organizers', [OrganizerProfileController::class, 'adminIndex']);
+        Route::post('/organizers/{organizerProfile}/approve', [OrganizerProfileController::class, 'approve']);
+        Route::post('/organizers/{organizerProfile}/reject', [OrganizerProfileController::class, 'reject']);
     });
+
+
+
+
+Route::get('/attendee-onboarding/options', [AttendeeProfileController::class, 'options']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/attendee-profile', [AttendeeProfileController::class, 'show']);
+    Route::post('/attendee-profile', [AttendeeProfileController::class, 'store']);
+});
+
+
+
+Route::get('/organizer-onboarding/options', [OrganizerProfileController::class, 'options']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/organizer-profile', [OrganizerProfileController::class, 'show']);
+    Route::post('/organizer-profile', [OrganizerProfileController::class, 'store']);
+});
